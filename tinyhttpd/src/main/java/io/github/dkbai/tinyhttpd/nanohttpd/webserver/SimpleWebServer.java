@@ -32,6 +32,9 @@ package io.github.dkbai.tinyhttpd.nanohttpd.webserver;
  * #L%
  */
 
+import android.content.Context;
+import android.support.annotation.VisibleForTesting;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
 
 import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.IHTTPSession;
 import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.NanoHTTPD;
@@ -57,6 +61,7 @@ import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.request.Method;
 import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.response.IStatus;
 import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.response.Response;
 import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.response.Status;
+import io.github.dkbai.tinyhttpd.nanohttpd.core.util.Logger;
 import io.github.dkbai.tinyhttpd.nanohttpd.core.util.ServerRunner;
 
 
@@ -74,34 +79,18 @@ public class SimpleWebServer extends NanoHTTPD {
         }
     };
 
+    private static final Logger LOG = Logger.getLogger(SimpleWebServer.class.getName());
     /**
      * The distribution licence
      */
-    private static final String LICENCE;
-
-    static {
-        mimeTypes();
-        String text;
-        try {
-            InputStream stream = SimpleWebServer.class.getResourceAsStream("/LICENSE.txt");
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            int count;
-            while ((count = stream.read(buffer)) >= 0) {
-                bytes.write(buffer, 0, count);
-            }
-            text = bytes.toString("UTF-8");
-        } catch (Exception e) {
-            text = "unknown";
-        }
-        LICENCE = text;
-    }
+    private static String LICENCE;
 
     private static Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<String, WebServerPlugin>();
 
     /**
      * Starts as a standalone file server and waits for Enter.
      */
+    @VisibleForTesting
     public static void main(String[] args) {
         // Defaults
         int port = 8080;
@@ -163,14 +152,14 @@ public class SimpleWebServer extends NanoHTTPD {
             for (String mime : mimeTypes) {
                 String[] indexFiles = info.getIndexFilesForMimeType(mime);
                 if (!quiet) {
-                    System.out.print("# Found plugin for Mime type: \"" + mime + "\"");
+                    LOG.log(Level.INFO, "# Found plugin for Mime type: \"" + mime + "\"");
                     if (indexFiles != null) {
-                        System.out.print(" (serving index files: ");
+                        LOG.log(Level.INFO, " (serving index files: ");
                         for (String indexFile : indexFiles) {
-                            System.out.print(indexFile + " ");
+                            LOG.log(Level.INFO, indexFile + " ");
                         }
                     }
-                    System.out.println(").");
+                    LOG.log(Level.INFO, ").");
                 }
                 registerPluginForMimeType(indexFiles, mime, info.getWebServerPlugin(mime), options);
             }
@@ -286,6 +275,31 @@ public class SimpleWebServer extends NanoHTTPD {
      * Used to initialize and customize the server.
      */
     public void init() {
+    }
+
+    public static void init(Context context, boolean disableDebug) {
+        if (context != null) {
+            context = context.getApplicationContext();
+        }
+
+        Logger.disableDebug = disableDebug;
+
+        mimeTypes(context);
+
+        String text;
+        try {
+            InputStream stream = context.getAssets().open("nanohttpd/LICENSE.md");
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int count;
+            while ((count = stream.read(buffer)) >= 0) {
+                bytes.write(buffer, 0, count);
+            }
+            text = bytes.toString("UTF-8");
+        } catch (Exception e) {
+            text = "unknown";
+        }
+        LICENCE = text;
     }
 
     protected String listDirectory(String uri, File f) {
@@ -446,17 +460,17 @@ public class SimpleWebServer extends NanoHTTPD {
         String uri = session.getUri();
 
         if (!this.quiet) {
-            System.out.println(session.getMethod() + " '" + uri + "' ");
+            LOG.log(Level.INFO, session.getMethod() + " '" + uri + "' ");
 
             Iterator<String> e = header.keySet().iterator();
             while (e.hasNext()) {
                 String value = e.next();
-                System.out.println("  HDR: '" + value + "' = '" + header.get(value) + "'");
+                LOG.log(Level.INFO, "  HDR: '" + value + "' = '" + header.get(value) + "'");
             }
             e = parms.keySet().iterator();
             while (e.hasNext()) {
                 String value = e.next();
-                System.out.println("  PRM: '" + value + "' = '" + parms.get(value) + "'");
+                LOG.log(Level.INFO, "  PRM: '" + value + "' = '" + parms.get(value) + "'");
             }
         }
 

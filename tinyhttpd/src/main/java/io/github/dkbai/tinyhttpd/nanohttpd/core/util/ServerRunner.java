@@ -35,7 +35,6 @@ package io.github.dkbai.tinyhttpd.nanohttpd.core.util;
 
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.NanoHTTPD;
 

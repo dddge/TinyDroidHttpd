@@ -34,24 +34,24 @@ package io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http;
  * #L%
  */
 
+import android.content.Context;
+import android.content.res.AssetManager;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.security.KeyStore;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.KeyManager;
@@ -71,6 +71,7 @@ import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.threading.IAsyncR
 import io.github.dkbai.tinyhttpd.nanohttpd.core.util.IFactory;
 import io.github.dkbai.tinyhttpd.nanohttpd.core.util.IFactoryThrowing;
 import io.github.dkbai.tinyhttpd.nanohttpd.core.util.IHandler;
+import io.github.dkbai.tinyhttpd.nanohttpd.core.util.Logger;
 
 
 /**
@@ -192,13 +193,16 @@ public abstract class NanoHTTPD {
      */
     protected static Map<String, String> MIME_TYPES;
 
-    public static Map<String, String> mimeTypes() {
+    protected static Map<String, String> mimeTypes() {
+        return mimeTypes(null);
+    }
+
+    public static Map<String, String> mimeTypes(Context context) {
         if (MIME_TYPES == null) {
             MIME_TYPES = new HashMap<String, String>();
-            loadMimeTypes(MIME_TYPES, "META-INF/nanohttpd/default-mimetypes.properties");
-            loadMimeTypes(MIME_TYPES, "META-INF/nanohttpd/mimetypes.properties");
+            loadMimeTypes(context, MIME_TYPES);
             if (MIME_TYPES.isEmpty()) {
-                LOG.log(Level.WARNING, "no mime types found in the classpath! please provide mimetypes.properties");
+                LOG.log(Level.WARNING, "no mime types found! please provide mimetypes.properties under the ASSETS folder");
             }
         }
         return MIME_TYPES;
@@ -208,29 +212,33 @@ public abstract class NanoHTTPD {
             "unchecked",
             "rawtypes"
     })
-    private static void loadMimeTypes(Map<String, String> result, String resourceName) {
+    private static void loadMimeTypes(Context context, Map<String, String> result) {
+        if (context == null) {
+            LOG.log(Level.WARNING, "Context is null! Please invoke init(Context) method first");
+            return;
+        }
         try {
-            Enumeration<URL> resources = NanoHTTPD.class.getClassLoader().getResources(resourceName);
-            while (resources.hasMoreElements()) {
-                URL url = (URL) resources.nextElement();
+            AssetManager assetManager = context.getAssets();
+            String fileParent = "nanohttpd/minetypes";
+            String[] minetypes = assetManager.list(fileParent);
+            for (int i = 0, len = minetypes.length; i < len; i++) {
                 Properties properties = new Properties();
                 InputStream stream = null;
                 try {
-                    stream = url.openStream();
+                    stream = assetManager.open(fileParent + "/" + minetypes[i]);
                     properties.load(stream);
                 } catch (IOException e) {
-                    LOG.log(Level.SEVERE, "could not load mimetypes from " + url, e);
+                    LOG.log(Level.SEVERE, "could not load mimetypes from " + minetypes[i], e);
                 } finally {
                     safeClose(stream);
                 }
                 result.putAll((Map) properties);
             }
+
         } catch (IOException e) {
-            LOG.log(Level.INFO, "no mime types available at " + resourceName);
+            LOG.log(Level.INFO, "no mime types available at assets/nanohttpd/minetypes!");
         }
     }
-
-    ;
 
     /**
      * Creates an SSLSocketFactory for HTTPS. Pass a loaded KeyStore and an
