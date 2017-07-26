@@ -277,8 +277,14 @@ public class SimpleWebServer extends NanoHTTPD {
     public void init() {
     }
 
+    private static boolean initialized = false;
+
     public static void init(Context context, boolean disableDebug) {
+
+        if (initialized) return;
+
         if (context != null) {
+            initialized = true;
             context = context.getApplicationContext();
         }
 
@@ -286,6 +292,14 @@ public class SimpleWebServer extends NanoHTTPD {
 
         mimeTypes(context);
 
+        loadLicence(context);
+    }
+
+    protected static void loadLicence(Context context) {
+        if (context == null) {
+            LOG.log(Level.WARNING, "Context is null! Please invoke init(Context) method first");
+            return;
+        }
         String text;
         try {
             InputStream stream = context.getAssets().open("nanohttpd/LICENSE.md");
@@ -298,6 +312,7 @@ public class SimpleWebServer extends NanoHTTPD {
             text = bytes.toString("UTF-8");
         } catch (Exception e) {
             text = "unknown";
+            LOG.log(Level.WARNING, "no LICENSE.md file found! please provide LICENSE.md under the ASSETS/nanohttpd folder");
         }
         LICENCE = text;
     }

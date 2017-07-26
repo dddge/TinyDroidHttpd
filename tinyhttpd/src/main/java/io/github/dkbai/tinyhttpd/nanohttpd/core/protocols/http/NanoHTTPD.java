@@ -46,6 +46,7 @@ import java.net.Socket;
 import java.net.URLDecoder;
 import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -198,6 +199,10 @@ public abstract class NanoHTTPD {
     }
 
     public static Map<String, String> mimeTypes(Context context) {
+        if (context == null) {
+            LOG.log(Level.WARNING, "Context is null! Please invoke init(Context) method first");
+            return Collections.emptyMap();
+        }
         if (MIME_TYPES == null) {
             MIME_TYPES = new HashMap<String, String>();
             loadMimeTypes(context, MIME_TYPES);
