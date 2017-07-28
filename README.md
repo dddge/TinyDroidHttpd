@@ -44,4 +44,4 @@ public class MyApplication extends Application {
 ```
 *NOTE:* Server works on the same thread as started it, so you must not start it on your UI thread.
 
-4. `SimpleWebServer.stopServer()`` can stop the running server.
+4. `SimpleWebServer.stopServer()` can stop the running server.
