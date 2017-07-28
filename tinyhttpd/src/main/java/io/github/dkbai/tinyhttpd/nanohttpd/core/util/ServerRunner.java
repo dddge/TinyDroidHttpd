@@ -34,6 +34,7 @@ package io.github.dkbai.tinyhttpd.nanohttpd.core.util;
  */
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 
 import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.NanoHTTPD;
@@ -44,24 +45,48 @@ public class ServerRunner {
      * logger to log to.
      */
     private static final Logger LOG = Logger.getLogger(ServerRunner.class.getName());
+    private static CountDownLatch downLatch;
 
     public static void executeInstance(NanoHTTPD server) {
+        if (downLatch != null) {
+            LOG.log(Level.INFO, "Server is already started.\n");
+            return;
+        }
         try {
+            downLatch = new CountDownLatch(1);
             server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
         } catch (IOException ioe) {
-            System.err.println("Couldn't start server:\n" + ioe);
+            LOG.log(Level.SEVERE, "Couldn't start server:\n" + ioe);
             System.exit(-1);
         }
 
-        System.out.println("Server started, Hit Enter to stop.\n");
-
         try {
-            System.in.read();
-        } catch (Throwable ignored) {
+            LOG.log(Level.INFO, "Server started.\n");
+            downLatch.await();
+        } catch (InterruptedException ignore) {
+        } finally {
+            LOG.log(Level.INFO, "Server stopped.\n");
+            server.stop();
         }
+//
+//        System.out.println("Server started, Hit Enter to stop.\n");
+//
+//        try {
+//            System.in.read();
+//        } catch (Throwable ignored) {
+//        }
+//
+//
+//        System.out.println("Server stopped.\n");
+    }
 
-        server.stop();
-        System.out.println("Server stopped.\n");
+    public static void stopServer() {
+        if (downLatch == null) {
+            LOG.log(Level.SEVERE, "Server not started");
+            return;
+        }
+        downLatch.countDown();
+        downLatch = null;
     }
 
     public static <T extends NanoHTTPD> void run(Class<T> serverClass) {

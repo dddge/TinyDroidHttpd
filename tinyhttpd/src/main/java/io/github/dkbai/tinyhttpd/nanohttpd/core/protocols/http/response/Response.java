@@ -56,9 +56,9 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.zip.GZIPOutputStream;
 
+import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.NanoHTTPD;
 import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.content.ContentType;
 import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.request.Method;
-import io.github.dkbai.tinyhttpd.nanohttpd.core.protocols.http.NanoHTTPD;
 
 /**
  * HTTP response. Return one of these from serve().
@@ -286,7 +286,7 @@ public class Response implements Closeable {
             try {
                 size = Long.parseLong(contentLengthString);
             } catch (NumberFormatException ex) {
-                NanoHTTPD.LOG.severe("content-length was no number " + contentLengthString);
+                NanoHTTPD.LOG.log(Level.SEVERE, "content-length was no number " + contentLengthString);
             }
         } else {
             pw.print("Content-Length: " + size + "\r\n");

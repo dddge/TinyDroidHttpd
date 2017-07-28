@@ -8,13 +8,29 @@
     tools:context="io.github.dkbai.tinydroidhttpd.MainActivity">
 
     <TextView
+        android:id="@+id/tv_stop"
+        android:layout_width="81dp"
+        android:layout_height="16dp"
         android:onClick="startGO"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
+        android:text="StopServer"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.745"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.123"/>
+
+    <TextView
+        android:id="@+id/tv_start"
+        android:layout_width="81dp"
+        android:layout_height="16dp"
+        android:onClick="startGO"
+        android:text="StartServer"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.234"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.123"/>
 
 </android.support.constraint.ConstraintLayout>

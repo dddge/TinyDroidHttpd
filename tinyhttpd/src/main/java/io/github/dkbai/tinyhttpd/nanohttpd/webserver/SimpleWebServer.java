@@ -87,6 +87,14 @@ public class SimpleWebServer extends NanoHTTPD {
 
     private static Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<String, WebServerPlugin>();
 
+    public static void runServer(String[] options) {
+        main(options);
+    }
+
+    public static void stopServer() {
+        ServerRunner.stopServer();
+    }
+
     /**
      * Starts as a standalone file server and waits for Enter.
      */
